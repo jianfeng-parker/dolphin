@@ -21,10 +21,13 @@ dolphin-client :
       
   > * 支持spring配置方式和@Value标签方式申明的属性占位符替换,如：
       
+      1. Spring XML方式:
+      
       <bean id="xx" class="xx.xx.A">
          <property name="name" value="${user.name}"/>
       </bean>
       
+      2. @Value表示方式:
       public class A{
       
         @Value("${user.name}")
