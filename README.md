@@ -13,23 +13,27 @@ dolphin-client :
   
   > * 这是一个jar，可通过Maven依赖,如:
   
-      ```xml
       <dependency>
          <groupId>cn.ubuilding.dolphin</groupId>
          <artifactId>dolphin-client</artifactId>
          <version>1.0-SNAPSHOT</version>
       </dependency>
       
-      ```
-  > * 目前支持spring配置文件申明bean的方式实现占位符替换,如：
+  > * 支持spring配置方式和@Value标签方式申明的属性占位符替换,如：
       
-      ```xml
-      <bean id="xx" class="xx.xx.xx">
-         <property name="x" value="${x}"/>
+      <bean id="xx" class="xx.xx.A">
+         <property name="name" value="${user.name}"/>
       </bean>
       
-      ```
-      属性x的值从zookeeper中获取，目前还不支持通过 @Value 标签的方式从zookeeper中获取值
+      public class A{
+      
+        @Value("${user.name}")
+        private String name;
+        
+        // setter and getter
+      }
+      
+      属性name的值为zookeeper节点: /xx/xx/.../user.name的值
       
 dolphin-web :
   
