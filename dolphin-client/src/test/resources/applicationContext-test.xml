@@ -4,7 +4,8 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 
-    <bean id="zookeeperPropertyConfigurer" class="cn.ubuilding.dolphin.properties.config.DolphinPropertyPlaceholderConfigurer">
+    <bean id="zookeeperPropertyConfigurer"
+          class="cn.ubuilding.dolphin.properties.config.DolphinPropertyPlaceholderConfigurer">
         <property name="ignoreUnresolvablePlaceholders" value="false"/>
         <property name="ignoreResourceNotFound" value="true"/>
         <property name="locations">
@@ -20,13 +21,13 @@
         <property name="x" value="${x}"/>
         <property name="y" value="${y}"/>
         <property name="z" value="${z}"/>
-        <property name="name" value="wjf"/>
     </bean>
 
-    <bean id="testConfigurerBean2" class="cn.ubuilding.dolphin.test.bean.TestZookeeperPropertyPlaceholderConfigurerBean2">
+    <bean id="testConfigurerBean2"
+          class="cn.ubuilding.dolphin.test.bean.TestZookeeperPropertyPlaceholderConfigurerBean2">
         <property name="x" value="${x}"/>
         <property name="y" value="yy"/>
-        <property name="z" value="${z}"/>
+        <property name="z" value="10"/>
         <property name="name" value="wjf"/>
     </bean>
 

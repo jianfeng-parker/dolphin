@@ -1,8 +1,9 @@
 package cn.ubuilding.dolphin.properties.config;
 
-import cn.ubuilding.dolphin.properties.bean.BeanFieldHolder;
-import cn.ubuilding.dolphin.zookeeper.PropertyChangeEvent;
-import cn.ubuilding.dolphin.zookeeper.PropertyChanger;
+import cn.ubuilding.dolphin.properties.support.BeanUsedHolder;
+import cn.ubuilding.dolphin.properties.support.DolphinPlaceholderCollector;
+import cn.ubuilding.dolphin.properties.support.PlaceholderChangeEvent;
+import cn.ubuilding.dolphin.properties.support.PlaceholderChanger;
 import cn.ubuilding.dolphin.zookeeper.ZkContainer;
 import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.beans.BeansException;
@@ -11,20 +12,17 @@ import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanDefinitionVisitor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.config.TypedStringValue;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.*;
 import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringValueResolver;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -32,7 +30,7 @@ import java.util.Map;
  * @since 16/2/2 09:29
  */
 
-public class DolphinPropertyPlaceholderConfigurer extends PropertySourcesPlaceholderConfigurer {
+public class DolphinPropertyPlaceholderConfigurer extends PropertySourcesPlaceholderConfigurer implements BeanPostProcessor {
 
     private MutablePropertySources propertySources;
 
@@ -40,8 +38,12 @@ public class DolphinPropertyPlaceholderConfigurer extends PropertySourcesPlaceho
 
     private BeanFactory beanFactory;
 
-    private Map<String, List<BeanFieldHolder>> holderPropertiesMap = new HashMap<>();
+    private DolphinPlaceholderCollector placeholderCollector;
 
+    public DolphinPropertyPlaceholderConfigurer() {
+        if (null == this.placeholderCollector)
+            this.placeholderCollector = new DolphinPlaceholderCollector(this.placeholderPrefix, this.placeholderSuffix);
+    }
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
@@ -113,17 +115,29 @@ public class DolphinPropertyPlaceholderConfigurer extends PropertySourcesPlaceho
             Object value = pv.getValue();
             if (value instanceof TypedStringValue) {
                 String _value = ((TypedStringValue) value).getValue();
-                // 占位符名称,如: ${x} => x
-                if (_value.startsWith(this.placeholderPrefix) && _value.endsWith(this.placeholderSuffix)) {
-                    _value = _value.substring(2);
-                    _value = _value.substring(0, _value.length() - 1);
-                    if (null == holderPropertiesMap.get(_value)) {
-                        holderPropertiesMap.put(_value, new ArrayList<BeanFieldHolder>());
-                    }
-                    holderPropertiesMap.get(_value).add(new BeanFieldHolder(beanName, pv.getName()));
-                }
+                placeholderCollector.collect(beanName, pv.getName(), _value);
             }
         }
+    }
+
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+        return bean;
+    }
+
+    @Override
+    public Object postProcessAfterInitialization(Object bean, final String beanName) throws BeansException {
+        ReflectionUtils.doWithFields(bean.getClass(), new ReflectionUtils.FieldCallback() {
+            @Override
+            public void doWith(Field field) throws IllegalArgumentException, IllegalAccessException {
+                Value annotation = field.getAnnotation(Value.class);
+                if (null != annotation) {
+                    String aValue = annotation.value(); // 标签值 -> 占位符
+                    placeholderCollector.collect(beanName, field.getName(), aValue);
+                }
+            }
+        });
+        return bean;
     }
 
     private class DolphinSourcesPropertyResolver extends PropertySourcesPropertyResolver {
@@ -137,7 +151,7 @@ public class DolphinPropertyPlaceholderConfigurer extends PropertySourcesPlaceho
          */
         DolphinSourcesPropertyResolver(PropertySources propertySources) {
             super(propertySources);
-            zk.addChanger(new BeanPropertyChanger(this));
+            zk.addChanger(new BeanPlaceholderChanger(this));
         }
 
 
@@ -151,14 +165,14 @@ public class DolphinPropertyPlaceholderConfigurer extends PropertySourcesPlaceho
         }
     }
 
-    private class BeanPropertyChanger implements PropertyChanger {
+    private class BeanPlaceholderChanger implements PlaceholderChanger {
 
         /**
          * 在获得property变更事件后动态更新bean中的对应属性值
          */
         private DolphinSourcesPropertyResolver resolver;
 
-        public BeanPropertyChanger(DolphinSourcesPropertyResolver resolver) {
+        public BeanPlaceholderChanger(DolphinSourcesPropertyResolver resolver) {
             this.resolver = resolver;
         }
 
@@ -166,17 +180,17 @@ public class DolphinPropertyPlaceholderConfigurer extends PropertySourcesPlaceho
          * @param event zookeeper节点发生变化的事件，如: /apps/app01/properties/x中的 "x"
          */
         @Override
-        public void onChange(PropertyChangeEvent event) {
-            List<BeanFieldHolder> list = DolphinPropertyPlaceholderConfigurer.this.holderPropertiesMap.get(event.getPropertyName());
+        public void onChange(PlaceholderChangeEvent event) {
+            List<BeanUsedHolder> list = DolphinPropertyPlaceholderConfigurer.this.placeholderCollector.getUsedPlaceholder(event.getName());
             if (null != list && list.size() > 0) {
                 Object value = null;
-                if (event.getType() == PropertyChangeEvent.ChangeType.PROPERTY_UPDATED) {
-                    value = event.getPropertyValue();
-                } else if (event.getType() == PropertyChangeEvent.ChangeType.PROPERTY_REMOVED) {
+                if (event.getType() == PlaceholderChangeEvent.ChangeType.PROPERTY_UPDATED) {
+                    value = event.getValue();
+                } else if (event.getType() == PlaceholderChangeEvent.ChangeType.PROPERTY_REMOVED) {
                     // 如果bean property对应的zookeeper节点被删除，则将property值更新为本地properties文件中的值
-                    value = resolver.getProperty(event.getPropertyName(), String.class, false);
+                    value = resolver.getProperty(event.getName(), String.class, false);
                 }
-                for (BeanFieldHolder holder : list) {
+                for (BeanUsedHolder holder : list) {
                     String beanName = holder.getBeanName();
                     Object bean = DolphinPropertyPlaceholderConfigurer.this.beanFactory.getBean(beanName);
                     if (null != bean) {
@@ -184,7 +198,7 @@ public class DolphinPropertyPlaceholderConfigurer extends PropertySourcesPlaceho
                         try {
                             BeanUtils.setProperty(bean, filed, value);
                         } catch (Exception e) {
-                            logger.error("update value(" + event.getPropertyValue() + ") to property(" + filed + ") of bean(" + beanName + ") error:" + e.getMessage());
+                            logger.error("update value(" + event.getValue() + ") to property(" + filed + ") of bean(" + beanName + ") error:" + e.getMessage());
                         }
                     }
                 }

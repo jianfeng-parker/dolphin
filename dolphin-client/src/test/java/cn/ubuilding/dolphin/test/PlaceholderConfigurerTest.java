@@ -22,10 +22,8 @@ public class PlaceholderConfigurerTest {
 
 
     @Test
-    public void testPlaceholder(){
-        Assert.assertEquals("1",testBean.getX());
-        Assert.assertEquals("2",testBean.getY());
-        Assert.assertEquals(3,testBean.getZ());
+    public void testPlaceholder() {
+        Assert.assertEquals(30, testBean.getAge());
 
     }
 

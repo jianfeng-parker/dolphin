@@ -20,7 +20,7 @@ public class DolphinController {
     @ResponseBody
     @RequestMapping(value = "/test")
     public Object getTest() {
-        return service.getHost() + ":" + service.getPort() + ":" + service.isOk();
+        return service.getHost() + ">>>" + service.getPort() + ">>>" + service.isOk() + ">>>" + service.getTestAnnotation();
     }
 
 }

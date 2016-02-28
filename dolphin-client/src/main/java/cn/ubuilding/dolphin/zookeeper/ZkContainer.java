@@ -1,6 +1,8 @@
 package cn.ubuilding.dolphin.zookeeper;
 
 import cn.ubuilding.dolphin.exception.DolphinException;
+import cn.ubuilding.dolphin.properties.support.PlaceholderChangeEvent;
+import cn.ubuilding.dolphin.properties.support.PlaceholderChanger;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
@@ -37,7 +39,7 @@ public class ZkContainer {
      */
     private String propertiesRootPath;
 
-    private List<PropertyChanger> changers = new CopyOnWriteArrayList<>();
+    private List<PlaceholderChanger> changers = new CopyOnWriteArrayList<>();
 
     static {
         cache = new ConcurrentHashMap<>();
@@ -65,7 +67,7 @@ public class ZkContainer {
         return instance;
     }
 
-    public void addChanger(PropertyChanger changer) {
+    public void addChanger(PlaceholderChanger changer) {
         this.changers.add(changer);
     }
 
@@ -152,13 +154,13 @@ public class ZkContainer {
                             String value = (null == event.getData()) ? "" : new String(event.getData().getData());
                             if (null != propertyNodeName && propertyNodeName.length() > 0) {
                                 cache.put(propertyNodeName, value);
-                                triggerChangers(new PropertyChangeEvent(propertyNodeName, new String(event.getData().getData()), PropertyChangeEvent.ChangeType.PROPERTY_UPDATED));
+                                triggerChangers(new PlaceholderChangeEvent(propertyNodeName, new String(event.getData().getData()), PlaceholderChangeEvent.ChangeType.PROPERTY_UPDATED));
                             }
                             break;
                         case CHILD_REMOVED:
                             if (null != propertyNodeName && propertyNodeName.length() > 0) {
                                 cache.remove(propertyNodeName);
-                                triggerChangers(new PropertyChangeEvent(propertyNodeName, PropertyChangeEvent.ChangeType.PROPERTY_REMOVED));
+                                triggerChangers(new PlaceholderChangeEvent(propertyNodeName, PlaceholderChangeEvent.ChangeType.PROPERTY_REMOVED));
                             }
                             break;
                         case CONNECTION_RECONNECTED:
@@ -182,10 +184,10 @@ public class ZkContainer {
     /**
      * 触发变化事件
      */
-    private void triggerChangers(PropertyChangeEvent event) {
+    private void triggerChangers(PlaceholderChangeEvent event) {
         if (null == changers || changers.size() == 0) return;
 
-        for (PropertyChanger changer : changers) {
+        for (PlaceholderChanger changer : changers) {
             changer.onChange(event);
         }
     }

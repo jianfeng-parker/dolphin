@@ -27,10 +27,10 @@
         </property>
     </bean>
 
-    <bean id="zkPropertyService" class="cn.ubuilding.dolphin.service.DolphinService">
-        <property name="host" value="${redis.host}"/>
-        <property name="port" value="${redis.port}"/>
-        <property name="ok" value="${redis.ok}"/>
-    </bean>
+    <!--<bean id="zkPropertyService" class="cn.ubuilding.dolphin.service.DolphinService">-->
+        <!--<property name="host" value="${redis.host}"/>-->
+        <!--<property name="port" value="${redis.port}"/>-->
+        <!--<property name="ok" value="${redis.ok}"/>-->
+    <!--</bean>-->
 
 </beans>

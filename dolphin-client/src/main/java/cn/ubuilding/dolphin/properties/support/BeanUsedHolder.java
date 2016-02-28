@@ -1,4 +1,4 @@
-package cn.ubuilding.dolphin.properties.bean;
+package cn.ubuilding.dolphin.properties.support;
 
 
 /**
@@ -6,13 +6,13 @@ package cn.ubuilding.dolphin.properties.bean;
  * @since 16/1/31 15:44
  */
 
-public class BeanFieldHolder {
+public class BeanUsedHolder {
 
     private String beanName;
 
     private String fieldName;
 
-    public BeanFieldHolder(String beanName, String fieldName) {
+    public BeanUsedHolder(String beanName, String fieldName) {
         this.beanName = beanName;
         this.fieldName = fieldName;
     }
