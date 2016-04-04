@@ -1,0 +1,4 @@
+app.name=dolphin-web
+app.domain=dolphin.ubuilding.cn
+deploy.env=dev
+zk.server=192.168.1.105:2181

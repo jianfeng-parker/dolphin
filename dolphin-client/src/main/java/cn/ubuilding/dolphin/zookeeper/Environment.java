@@ -21,13 +21,15 @@ public class Environment {
 
     private static final String envFile = "sysenv";
 
-    private static final String classpathEnv = "classpath:SYS-INF/" + envFile;
+    private static final String classpathEnv = "classpath:" + envFile;
 
     private static final String fileSystemEnv = "file:/data/webapps/" + envFile;
 
     private static Properties props = null;
 
     private static String appName;
+
+    private static String appDomain;
 
     private static String deployEnv;
 
@@ -49,6 +51,11 @@ public class Environment {
                 }
             }
 
+            appDomain = props.getProperty("app.domain");
+            if (null == appDomain || appDomain.length() == 0)
+                throw new IllegalArgumentException("not found property(app.domain) in " + envFile);
+
+
             appName = props.getProperty("app.name");
             if (null == appName || appName.length() == 0)
                 throw new IllegalArgumentException("not found property(app.name) in " + envFile);
@@ -59,8 +66,7 @@ public class Environment {
 
             deployEnv = props.getProperty("deploy.env");
             if (null == deployEnv || deployEnv.length() == 0) {
-                logger.warn("not found property(deploy.env), so 'dev' will be used.");
-                deployEnv = "dev";
+                throw new IllegalArgumentException("not found property(deploy.env) in " + envFile + ", is must be one of (dev/test/prod)");
             }
 
         } catch (IOException e) {
@@ -71,6 +77,10 @@ public class Environment {
 
     public static Properties getProps() {
         return props;
+    }
+
+    public static String getAppDomain() {
+        return appDomain;
     }
 
     public static String getAppName() {
