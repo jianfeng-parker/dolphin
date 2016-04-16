@@ -23,11 +23,18 @@ dolphin-client :
       
       1. Spring XML方式:
       
+      ```xml
+      
       <bean id="xx" class="xx.xx.A">
          <property name="name" value="${user.name}"/>
       </bean>
       
+      ```
+      
       2. @Value表示方式:
+      
+      ```java
+      
       public class A{
       
         @Value("${user.name}")
@@ -36,7 +43,8 @@ dolphin-client :
         // setter and getter
       }
       
-      属性name的值为zookeeper节点: /xx/xx/.../user.name的值
+      ```
+      注: 属性name的值为zookeeper节点: /xx/xx/.../user.name的值
       
 dolphin-web :
   
