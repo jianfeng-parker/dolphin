@@ -1,4 +1,4 @@
-## 这是一个zookeeper相关的项目（ubuilding-dolphin）：
+#### zookeeper配置管理：
 
 ------
 
