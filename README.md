@@ -1,13 +1,13 @@
-#### zookeeper配置管理：
+#### zookeeper各种应用场景的封装：
 
 ------
 
 目前主要包含两个子项目
 
 ------
-dolphin-client :
+dolphin-config :
 
-  > * 在其它的项目中可用于代替Spring的PropertyPlaceholderConfigurer从zookeeper中读取properties配置. 
+  > * 用于代替Spring的PropertyPlaceholderConfigurer从zookeeper中动态获取属性值 
 
   > * 监听属性节点的变化以动态更新bean的属性值
   
@@ -46,7 +46,7 @@ dolphin-client :
      ```
   注: 属性name的值为zookeeper节点: /xx/xx/.../user.name的值
       
-dolphin-web :
+dolphin-admin :
   
   > * 基于zookeeper实现的统一配置中心应用
   

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+    <bean id="zookeeperPropertyConfigurer"
+          class="cn.ubuilding.dolphin.PropertyPlaceholderConfigurer">
+        <property name="ignoreUnresolvablePlaceholders" value="false"/>
+        <property name="ignoreResourceNotFound" value="true"/>
+        <property name="locations">
+            <list>
+                <value>classpath:test.properties</value>
+                <value>classpath:test2.properties</value>
+            </list>
+        </property>
+    </bean>
+
+
+    <bean id="testConfigurerBean" class="cn.ubuilding.dolphin.test.bean.TestZookeeperPropertyPlaceholderConfigurerBean">
+        <property name="x" value="${x}"/>
+        <property name="y" value="${y}"/>
+        <property name="z" value="${z}"/>
+    </bean>
+
+    <bean id="testConfigurerBean2"
+          class="cn.ubuilding.dolphin.test.bean.TestZookeeperPropertyPlaceholderConfigurerBean2">
+        <property name="x" value="${x}"/>
+        <property name="y" value="yy"/>
+        <property name="z" value="10"/>
+        <property name="name" value="wjf"/>
+    </bean>
+
+</beans>
